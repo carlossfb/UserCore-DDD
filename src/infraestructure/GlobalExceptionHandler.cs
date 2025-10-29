@@ -29,7 +29,7 @@ namespace UsersFunctionApp.src.infraestructure
             }
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, "Erro interno no servidor:");
+                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, "Internal Server Error");
                 _logger.LogError(ex.ToString());
             }
         }
@@ -37,7 +37,7 @@ namespace UsersFunctionApp.src.infraestructure
         private static async Task HandleExceptionAsync(FunctionContext context, HttpStatusCode statusCode, string message)
         {
             var logger = context.GetLogger<GlobalExceptionHandler>();
-            logger.LogError("Erro capturado no middleware global: {Message}", message);
+            logger.LogError("Error captured by middleware: {Message}", message);
 
             // Obtém o HttpRequestData (se existir)
             var request = await context.GetHttpRequestDataAsync();

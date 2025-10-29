@@ -17,13 +17,13 @@ namespace UsersFunctionApp.src.domain
             var digits = Regex.Replace(document ?? "", "[^0-9]", "");
 
             if (string.IsNullOrWhiteSpace(digits))
-                throw new DomainException("CPF não pode ser vazio");
+                throw new DomainException("CPF cannot be empty");
 
             if (digits.Length != 11)
-                throw new DomainException("CPF deve conter 11 dígitos");
+                throw new DomainException("CPF must contain 11 digits");
 
             if (digits.All(d => d == digits[0]))
-                throw new DomainException("CPF inválido");
+                throw new DomainException("Invalid CPF");
 
             var numbers = digits.Select(n => int.Parse(n.ToString())).ToList();
 
@@ -36,7 +36,7 @@ namespace UsersFunctionApp.src.domain
             int firstDigit = firstRest < 2 ? 0 : 11 - firstRest;
 
             if (numbers[9] != firstDigit)
-                throw new DomainException("CPF inválido");
+                throw new DomainException("Invalid CPF");
 
             int secondSum = 0;
             for (int i = 0; i < 10; i++)
@@ -46,7 +46,7 @@ namespace UsersFunctionApp.src.domain
             int secondDigit = secondRest < 2 ? 0 : 11 - secondRest;
 
             if (numbers[10] != secondDigit)
-                throw new DomainException("CPF inválido");
+                throw new DomainException("Invalid CPF");
 
             return digits;
         }

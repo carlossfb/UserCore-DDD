@@ -21,10 +21,10 @@ namespace UsersFunctionApp.src.domain
 
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new DomainException("Nome deve ser informado");
+                throw new DomainException("Name is required");
 
             if (int.IsNegative(age))
-                throw new DomainException("Idade não pode ser negativa");
+                throw new DomainException("Age cannot be negative");
 
             var user = new User(name, age, cpf);
 
