@@ -87,8 +87,21 @@ func start
 ```
 
 ### Test the API
+**Local:**
 ```bash
 POST http://localhost:7071/api/create-user
+Content-Type: application/json
+
+{
+  "Name": "João Silva",
+  "Age": 30,
+  "Cpf": "12345678901"
+}
+```
+
+**Azure:**
+```bash
+POST https://usercore-ddd-funcapp.azurewebsites.net/api/create-user
 Content-Type: application/json
 
 {
@@ -189,3 +202,50 @@ Implements complete validation following official Brazilian rules:
 4. Calculates first check digit
 5. Calculates second check digit
 6. Formats for display
+
+## ☁️ Azure Deployment
+
+### Prerequisites
+- Azure CLI installed and logged in
+- PowerShell
+- .NET 8 SDK
+
+### Deploy to Azure Functions
+
+```powershell
+# Set deployment variables
+$RG_NAME="usercore-ddd-rg" 
+$APP_NAME="usercore-ddd-funcapp"
+$LOCATION="eastus" 
+$RUNTIME="dotnet-isolated"
+$APPINSIGHTS_NAME="${APP_NAME}-ai"
+# Generate unique Storage Account name with timestamp
+$STORAGE_NAME="usercoreddddsa$(Get-Date -Format 'yyyymmdd')"
+
+# Create Azure resources
+az group create -n $RG_NAME -l $LOCATION
+
+az storage account create -n $STORAGE_NAME -l $LOCATION -g $RG_NAME --sku Standard_LRS
+
+az monitor app-insights component create --app $APPINSIGHTS_NAME -l $LOCATION -g $RG_NAME --kind web
+
+az functionapp create -n $APP_NAME -g $RG_NAME -c $LOCATION --storage-account $STORAGE_NAME --runtime $RUNTIME --runtime-version 8 --functions-version 4 --app-insights $APPINSIGHTS_NAME --os-type windows
+
+# Build and deploy
+dotnet publish -c Release -o ./publish
+
+Compress-Archive -Path .\publish\* -DestinationPath .\publish.zip -Force
+
+az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src .\publish.zip
+```
+
+### Post-Deployment
+After deployment, your API will be available at:
+```
+https://usercore-ddd-funcapp.azurewebsites.net/api/create-user
+```
+
+**Note:** To test the API in Postman or Thunder Client after deployment, you'll need to include the `x-functions-key` header. Get the key with:
+```bash
+az functionapp keys list -g usercore-ddd-rg -n usercore-ddd-funcapp --query 'functionKeys.default' -o tsv
+```
