@@ -1,4 +1,5 @@
 using UsersFunctionApp.src.domain.exception;
+using UsersFunctionApp.src.domain.vo;
 
 namespace UsersFunctionApp.src.domain
 {
@@ -7,18 +8,17 @@ namespace UsersFunctionApp.src.domain
         public Guid Id { get; private set; }
         public string Name { get; private set; }
         public int Age { get; private set; }
-        public string Cpf { get; private set; }
+        public Cpf Cpf { get; private set; }
 
         private User(string name, int age, string cpf)
         {
             Id = Guid.NewGuid();
             Name = name;
             Age = age;
-            Cpf = new Cpf(cpf).ToString();
+            Cpf = new Cpf(cpf);
         }
 
         public static User Create(string name, int age, string cpf)
-
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new DomainException("Name is required");

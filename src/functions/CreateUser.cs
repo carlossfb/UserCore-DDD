@@ -29,7 +29,7 @@ public class CreateUser
         if (request == null)
             return new BadRequestObjectResult("Invalid request body");
 
-        var user = _userService.Create(request.Name, request.Age,request.Cpf);
+        var user = _userService.Create(request);
 
         return new OkObjectResult(user);
     }

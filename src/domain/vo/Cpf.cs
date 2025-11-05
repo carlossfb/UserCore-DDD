@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using UsersFunctionApp.src.domain.exception;
 
-namespace UsersFunctionApp.src.domain
+namespace UsersFunctionApp.src.domain.vo
 {
     public sealed record Cpf
   {
