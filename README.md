@@ -4,14 +4,27 @@ An Azure Functions application built with .NET 8 following Hexagonal Architectur
 
 ## 🏗️ Architecture
 
-The project follows a well-defined layered architecture:
+The project follows a well-defined layered architecture with Java-style structure:
 
 ```
 src/
-├── domain/           # Business rules and entities
-├── application/      # Use cases and DTOs
-├── functions/        # Primary adapters (HTTP triggers)
-└── infrastructure/   # Secondary adapters and middlewares
+├── main/                    # Source code
+│   ├── domain/              # Business rules and entities
+│   ├── application/         # Use cases and DTOs
+│   ├── functions/           # Primary adapters (HTTP triggers)
+│   ├── infraestructure/     # Secondary adapters and middlewares
+│   └── Program.cs           # Application entry point
+└── test/                    # Test suite (34 tests)
+    ├── unit/                # Unit tests (26 tests)
+    │   ├── CpfTests.cs      # CPF validation tests
+    │   ├── UserTests.cs     # User entity tests
+    │   ├── UserServiceTests.cs # Service layer tests
+    │   └── UserMapperTests.cs # Mapper tests
+    ├── integration/         # Integration tests (4 tests)
+    │   └── ServiceIntegrationTests.cs
+    ├── e2e/                 # End-to-End tests (4 tests)
+    │   └── ApiTests.cs      # HTTP API tests
+    └── UsersFunctionApp.Tests.csproj
 ```
 
 ### Domain Layer
@@ -28,7 +41,7 @@ src/
 - **CreateUser** - Azure Function for user creation via HTTP
 
 ### Infrastructure Layer
-- **GlobalExceptionHandler** - Middleware for global exception handling
+- **GlobalExceptionHandler** - Middleware for global exception handling (configured but handled in function)
 
 ## 🚀 Features
 
@@ -86,7 +99,77 @@ npm install -g azure-functions-core-tools@4 --unsafe-perm true
 func start
 ```
 
+### Run Tests
+
+#### Execute All Tests (34 tests)
+```bash
+# From root directory
+dotnet test src/test
+```
+
+#### Execute Tests by Category
+```bash
+# Unit Tests Only (26 tests)
+dotnet test src/test --filter "FullyQualifiedName~unit"
+
+# Integration Tests Only (4 tests)
+dotnet test src/test --filter "FullyQualifiedName~integration"
+
+# E2E Tests Only (4 tests) - Requires server running
+dotnet test src/test --filter "FullyQualifiedName~e2e"
+
+# Unit + Integration Tests (30 tests) - Skip E2E
+dotnet test src/test --filter "FullyQualifiedName!~e2e"
+```
+
+#### Execute Specific Test Files
+```bash
+# CPF validation tests
+dotnet test src/test/unit/CpfTests.cs
+
+# User entity tests
+dotnet test src/test/unit/UserTests.cs
+
+# Service layer tests
+dotnet test src/test/unit/UserServiceTests.cs
+
+# Mapper tests
+dotnet test src/test/unit/UserMapperTests.cs
+
+# Integration tests
+dotnet test src/test/integration/ServiceIntegrationTests.cs
+
+# E2E API tests
+dotnet test src/test/e2e/ApiTests.cs
+```
+
+#### Execute Tests with Verbose Output
+```bash
+# Detailed test output
+dotnet test src/test --verbosity normal
+
+# Show test names as they run
+dotnet test src/test --logger "console;verbosity=detailed"
+```
+
+#### Execute E2E Tests (Requires Running Server)
+```bash
+# Terminal 1: Start Azure Functions
+func start
+
+# Terminal 2: Run E2E tests
+dotnet test src/test --filter "FullyQualifiedName~e2e"
+```
+
 ### Test the API
+
+#### Prerequisites for E2E Tests
+Before running E2E tests, start the Azure Functions server:
+```bash
+func start
+```
+
+#### Manual API Testing
 **Local:**
 ```bash
 POST http://localhost:7071/api/create-user
@@ -141,6 +224,39 @@ Content-Type: application/json
 }
 ```
 
+## 🧪 Test Suite
+
+The project includes comprehensive tests following the test pyramid pattern:
+
+### Test Coverage (34 Total Tests)
+
+#### Unit Tests (26 tests)
+- **CpfTests** (15 tests): Value Object validation and CPF algorithm
+- **UserTests** (6 tests): Entity business rules and validations
+- **UserServiceTests** (4 tests): Application service layer logic
+- **UserMapperTests** (1 test): DTO mapping functionality
+
+#### Integration Tests (4 tests)
+- **ServiceIntegrationTests**: Complete service pipeline testing
+- Tests the integration between domain, application, and infrastructure layers
+
+#### E2E Tests (4 tests)
+- **ApiTests**: HTTP API endpoint testing
+- Tests complete request/response cycle
+- Requires Azure Functions server running locally
+
+### Test Categories
+- ✅ **Unit**: Fast, isolated, no dependencies
+- ✅ **Integration**: Service layer integration
+- ✅ **E2E**: Full HTTP API testing
+
+### Test Technologies
+- **xUnit**: Test framework
+- **FluentAssertions**: Readable assertions
+- **Theory/InlineData**: Parameterized tests
+- **Microsoft.AspNetCore.Mvc.Testing**: Integration testing
+- **HttpClient**: E2E API testing
+
 ## 🎯 Applied Principles
 
 - **Hexagonal Architecture**: Clear separation of responsibilities
@@ -149,50 +265,72 @@ Content-Type: application/json
 - **Dependency Injection**: Inversion of control
 - **Exception Handling**: Centralized error handling
 - **Value Objects**: Encapsulation of validation rules
+- **Test Pyramid**: Comprehensive test coverage (Unit > Integration > E2E)
+- **Clean Code**: Readable and maintainable code structure
 
 ## 📁 File Structure
 
 ```
 UsersFunctionApp/
 ├── src/
-│   ├── application/
-│   │   ├── dto/
-│   │   │   └── UserRequestDTO.cs
-│   │   └── service/
-│   │       └── UserServiceImpl.cs
-│   ├── domain/
-│   │   ├── entity/
-│   │   │   └── User.cs
-│   │   ├── exception/
-│   │   │   └── DomainException.cs
-│   │   ├── service/
-│   │   │   └── IUserService.cs
-│   │   └── vo/
-│   │       └── Cpf.cs
-│   ├── functions/
-│   │   └── CreateUser.cs
-│   └── infrastructure/
-│       └── GlobalExceptionHandler.cs
-├── Program.cs
-├── host.json
-├── local.settings.json
-└── UsersFunctionApp.csproj
+│   ├── main/                           # Source code
+│   │   ├── application/                # Application layer
+│   │   │   ├── dto/                    # Data Transfer Objects
+│   │   │   │   ├── UserMapper.cs       # DTO mapping logic
+│   │   │   │   ├── UserRequestDTO.cs   # HTTP request DTO
+│   │   │   │   └── UserResponseDTO.cs  # HTTP response DTO
+│   │   │   └── service/                # Application services
+│   │   │       └── UserServiceImpl.cs  # User service implementation
+│   │   ├── domain/                     # Domain layer
+│   │   │   ├── entity/                 # Domain entities
+│   │   │   │   └── User.cs             # User entity with business rules
+│   │   │   ├── exception/              # Domain exceptions
+│   │   │   │   └── DomainException.cs  # Custom domain exception
+│   │   │   ├── service/                # Domain service interfaces
+│   │   │   │   └── IUserService.cs     # User service contract
+│   │   │   └── vo/                     # Value Objects
+│   │   │       └── Cpf.cs              # CPF value object with validation
+│   │   ├── functions/                  # Azure Functions (Primary adapters)
+│   │   │   └── CreateUser.cs           # HTTP trigger function
+│   │   ├── infraestructure/            # Infrastructure layer
+│   │   │   └── GlobalExceptionHandler.cs # Global exception middleware
+│   │   └── Program.cs                  # Application entry point
+│   └── test/                           # Test suite
+│       ├── unit/                       # Unit tests (26 tests)
+│       │   ├── CpfTests.cs             # CPF validation tests (15 tests)
+│       │   ├── UserTests.cs            # User entity tests (6 tests)
+│       │   ├── UserServiceTests.cs     # Service layer tests (4 tests)
+│       │   └── UserMapperTests.cs      # Mapper tests (1 test)
+│       ├── integration/                # Integration tests (4 tests)
+│       │   └── ServiceIntegrationTests.cs # Service pipeline tests
+│       ├── e2e/                        # End-to-End tests (4 tests)
+│       │   └── ApiTests.cs             # HTTP API tests
+│       └── UsersFunctionApp.Tests.csproj # Test project file
+├── Properties/
+│   └── launchSettings.json             # Launch configuration
+├── .gitignore                          # Git ignore rules
+├── host.json                           # Azure Functions host configuration
+├── local.settings.json                 # Local development settings
+├── LICENSE                             # MIT License
+├── README.md                           # Project documentation
+├── UsersFunctionApp.csproj             # Main project file
+└── UsersFunctionApp.sln                # Solution file
 ```
 
 ## 🔍 Technical Details
 
-### Exception Middleware
-The `GlobalExceptionHandler` intercepts all exceptions and:
-- Catches `DomainException` returning 400 Bad Request
-- Catches general exceptions returning 500 Internal Server Error
-- Formats standardized JSON responses
-- Logs structured information
+### Exception Handling
+Exception handling is implemented directly in the `CreateUser` function with try/catch blocks:
+- Catches `DomainException` returning 400 Bad Request with structured JSON
+- Validates request body and returns appropriate error messages
+- Formats standardized JSON responses with code, message, and timestamp
+- Logs structured information using ILogger
 
 ### Dependency Injection
 Configured in `Program.cs` to register:
-- Domain services
-- Global middleware
-- Azure Functions configurations
+- Domain services (`IUserService` → `UserServiceImpl`)
+- Application Insights telemetry
+- Azure Functions Worker configurations with ASP.NET Core integration
 
 ### CPF Value Object
 Implements complete validation following official Brazilian rules:
